@@ -12,9 +12,9 @@ export const uploadToS3 = async ({ name, filePath }: UploadToS3Props) => {
   const s3Client = new Bun.S3Client({
     accessKeyId: env.AWS_ACCESS_KEY_ID,
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    bucket: env.AWS_S3_BUCKET,
-    region: env.AWS_S3_REGION,
-    endpoint: env.AWS_S3_ENDPOINT,
+    bucket: env.S3_BUCKET,
+    region: env.S3_REGION,
+    endpoint: env.S3_ENDPOINT,
   });
 
   if (env.BUCKET_SUBFOLDER) {

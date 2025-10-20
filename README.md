@@ -30,16 +30,17 @@ To configure the backup utility, you need to set the following environment varia
 | ----------------------- | ---------------------------------------------------------------------------------- | ----------- |
 | `AWS_ACCESS_KEY_ID`     | Your S3 access key ID.                                                             |             |
 | `AWS_SECRET_ACCESS_KEY` | Your S3 secret access key.                                                         |             |
-| `AWS_S3_BUCKET`         | The name of your S3 bucket.                                                        |             |
-| `AWS_S3_REGION`         | The region of your S3 bucket.                                                      |             |
-| `AWS_S3_ENDPOINT`       | The endpoint for your S3-compatible service (optional).                            |             |
-| `BACKUP_DATABASE_URL`   | The connection URL for your PostgreSQL database.                                   |             |
+| `S3_BUCKET`             | The name of your S3 bucket.                                                        |             |
+| `S3_REGION`             | The region of your S3 bucket.                                                      |             |
+| `S3_ENDPOINT`           | The endpoint for your S3-compatible service (optional).                            |             |
+| `DATABASE_URL`          | The connection URL for your PostgreSQL database.                                   |             |
 | `BACKUP_CRON_SCHEDULE`  | The cron schedule for backups. See [crontab.guru](https://crontab.guru/) for help. | `0 0 * * *` |
 | `BACKUP_FILE_PREFIX`    | The prefix for the backup file name.                                               | `backup`    |
 | `BUCKET_SUBFOLDER`      | A subfolder within the bucket to store backups (optional).                         |             |
 | `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                         |             |
 | `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                                | `false`     |
 | `SINGLE_SHOT_MODE`      | Whether to run a single backup and then exit.                                      | `false`     |
+| `PG_VERSION`            | The version of PostgreSQL to use for `pg_dump` on Docker.                          | `18`        |
 
 ## Usage
 

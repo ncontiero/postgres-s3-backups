@@ -5,7 +5,7 @@ import { logger } from "../utils/logger";
 export const dumpToFile = async (filePath: string) => {
   logger.info("Dumping database to file...");
 
-  const pgDumpArgs = [`--dbname=${env.BACKUP_DATABASE_URL}`, "--format=tar"];
+  const pgDumpArgs = [`--dbname=${env.DATABASE_URL}`, "--format=tar"];
 
   if (env.BACKUP_OPTIONS) {
     const extraOptions = env.BACKUP_OPTIONS.split(" ");
