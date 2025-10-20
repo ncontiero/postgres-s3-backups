@@ -10,6 +10,7 @@
   "license": "MIT",
   "module": "src/index.ts",
   "scripts": {
+    "build": "bun build --compile --minify src/index.ts --outfile postgres-s3-backup",
     "start": "bun run src/index.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
