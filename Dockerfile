@@ -6,6 +6,13 @@ RUN mkdir -p /temp/prod
 COPY package.json bun.lock /temp/prod/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
+FROM base AS build
+
+COPY --from=install /temp/prod/node_modules node_modules
+COPY . .
+
+RUN bun build --compile --minify ./src/index.ts --outfile postgres-s3-backup
+
 FROM base AS release
 
 ARG PG_VERSION="18"
@@ -20,9 +27,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=install /temp/prod/node_modules node_modules
-COPY . .
+COPY --from=build /app/postgres-s3-backup .
 
 USER bun
 
-CMD [ "bun", "start" ]
+CMD [ "./postgres-s3-backup" ]
