@@ -1,6 +1,10 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
+const booleanSchema = z.string().transform((val) => {
+  return val.toLowerCase() === "true" || val === "1";
+});
+
 export const env = createEnv({
   server: {
     NODE_ENV: z
@@ -22,8 +26,8 @@ export const env = createEnv({
     BUCKET_SUBFOLDER: z.string().optional(),
     BACKUP_OPTIONS: z.string().optional(),
 
-    RUN_ON_STARTUP: z.coerce.boolean().default(false),
-    SINGLE_SHOT_MODE: z.coerce.boolean().default(false),
+    RUN_ON_STARTUP: booleanSchema.default(false),
+    SINGLE_SHOT_MODE: booleanSchema.default(false),
   },
 
   runtimeEnv: Bun.env,
