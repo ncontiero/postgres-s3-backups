@@ -12,6 +12,11 @@ const tryBackup = async () => {
     logger.info("Starting backup...");
     logger.break();
 
+    const isPgDumpAvailable = Bun.which("pg_dump");
+    if (!isPgDumpAvailable) {
+      throw new Error("pg_dump is not available.");
+    }
+
     const date = new Date().toISOString();
     const timestamp = date.replaceAll(/[:.]/g, "-");
     const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.sql.gz`;
