@@ -2,7 +2,7 @@
 
 A simple utility to backup Postgres databases to S3-compatible services, built with [Bun](https://bun.sh/).
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/t4HonS?referralCode=7y-eBI)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/postgresql-s3-backups?referralCode=7y-eBI)
 
 ## Features
 
