@@ -10,8 +10,12 @@
     "typecheck": "tsc --noEmit",
     "check": "bun run lint && bun run typecheck"
   },
-  "peerDependencies": {
-    "typescript": "5.9.3"
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.8",
+    "colorette": "^2.0.20",
+    "cron": "^4.3.3",
+    "filesize": "^11.0.13",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@ncontiero/eslint-config": "^6.3.1",
