@@ -2,6 +2,12 @@
   "name": "postgres-s3-backups",
   "type": "module",
   "packageManager": "bun@1.3.0",
+  "description": "A simple utility to backup Postgres databases to S3 using Bun.",
+  "author": {
+    "name": "Nicolas Contiero",
+    "url": "https://github.com/ncontiero"
+  },
+  "license": "MIT",
   "module": "src/index.ts",
   "scripts": {
     "start": "bun run src/index.ts",
