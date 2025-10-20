@@ -1,23 +1,23 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
     // Environment setup & latest features
     "lib": ["ESNext"],
-    "target": "ESNext",
-    "module": "Preserve",
     "moduleDetection": "force",
-    "allowJs": true,
+    "module": "Preserve",
 
     // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "allowJs": true,
 
     // Best practices
     "strict": true,
-    "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
   }
 }
