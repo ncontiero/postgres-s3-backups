@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
     // Environment setup & latest features
+    "target": "ESNext",
     "lib": ["ESNext"],
     "moduleDetection": "force",
     "module": "Preserve",
-
+    
     // Bundler mode
     "moduleResolution": "bundler",
+    "types": ["bun"],
     "allowImportingTsExtensions": true,
     "allowJs": true,
 
@@ -19,5 +20,6 @@
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-  }
+  },
+  "include": ["**/*.ts"]
 }
