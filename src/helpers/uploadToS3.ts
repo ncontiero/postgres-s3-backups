@@ -14,7 +14,7 @@ const s3Client = new Bun.S3Client({
   endpoint: env.S3_ENDPOINT,
 });
 
-export const uploadToS3 = async ({ name, filePath }: UploadToS3Props) => {
+export async function uploadToS3({ name, filePath }: UploadToS3Props) {
   logger.info("Uploading backup to S3...");
 
   if (env.BUCKET_SUBFOLDER) {
@@ -38,4 +38,4 @@ export const uploadToS3 = async ({ name, filePath }: UploadToS3Props) => {
   }
 
   logger.success("Upload completed.");
-};
+}

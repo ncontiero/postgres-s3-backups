@@ -7,7 +7,7 @@ import { uploadToS3 } from "./helpers/uploadToS3";
 import { deleteFile } from "./utils/deleteFile";
 import { logger } from "./utils/logger";
 
-const tryBackup = async () => {
+async function tryBackup() {
   try {
     logger.info("Starting backup...");
     logger.break();
@@ -33,7 +33,7 @@ const tryBackup = async () => {
     console.error(error);
     process.exit(1);
   }
-};
+}
 
 if (env.RUN_ON_STARTUP || env.SINGLE_SHOT_MODE) {
   await tryBackup();
@@ -43,9 +43,7 @@ if (env.RUN_ON_STARTUP || env.SINGLE_SHOT_MODE) {
   }
 }
 
-const job = new CronJob(env.BACKUP_CRON_SCHEDULE, async () => {
-  await tryBackup();
-});
+const job = new CronJob(env.BACKUP_CRON_SCHEDULE, tryBackup);
 
 job.start();
 

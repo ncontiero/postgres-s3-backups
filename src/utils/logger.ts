@@ -12,9 +12,9 @@ const colorFunctions = {
   warn: yellow,
 };
 
-export const colorize = (type: LOG_TYPE, data: string | number) => {
+export function colorize(type: LOG_TYPE, data: string | number) {
   return colorFunctions[type]?.(data) ?? data;
-};
+}
 
 export function createLogger(type: LOG_TYPE, ...data: (string | number)[]) {
   const args = data.map((item) => colorize(type, item));

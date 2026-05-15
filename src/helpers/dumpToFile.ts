@@ -2,7 +2,7 @@ import { filesize } from "filesize";
 import { env } from "../env";
 import { logger } from "../utils/logger";
 
-export const dumpToFile = async (filePath: string) => {
+export async function dumpToFile(filePath: string) {
   logger.info("Dumping database to file...");
 
   const pgDumpArgs = [`--dbname=${env.DATABASE_URL}`, "--format=tar"];
@@ -55,4 +55,4 @@ export const dumpToFile = async (filePath: string) => {
 
   logger.success("Database dumped successfully.");
   logger.break();
-};
+}
