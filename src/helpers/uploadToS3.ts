@@ -30,7 +30,7 @@ export const uploadToS3 = async ({ name, filePath }: UploadToS3Props) => {
     const writer = s3File.writer();
 
     for await (const chunk of localFile.stream()) {
-      writer.write(chunk);
+      void writer.write(chunk);
     }
     await writer.end();
   } else {
