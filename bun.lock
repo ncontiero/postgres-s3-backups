@@ -5,16 +5,16 @@
     "": {
       "name": "postgres-s3-backups",
       "dependencies": {
-        "@t3-oss/env-core": "^0.13.11",
-        "colorette": "^2.0.20",
-        "cron": "^4.4.0",
-        "filesize": "^11.0.17",
-        "zod": "^4.4.3",
+        "@t3-oss/env-core": "0.13.11",
+        "colorette": "2.0.20",
+        "cron": "4.4.0",
+        "filesize": "11.0.17",
+        "zod": "4.4.3",
       },
       "devDependencies": {
         "@ncontiero/eslint-config": "8.2.2",
         "@types/bun": "1.3.14",
-        "eslint": "^10.4.1",
+        "eslint": "10.4.1",
       },
     },
   },
