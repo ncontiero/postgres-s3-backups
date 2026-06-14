@@ -1,18 +1,11 @@
 import { env } from "../env";
+import { s3Client } from "../lib/s3";
 import { logger } from "../utils/logger";
 
 interface UploadToS3Props {
   name: string;
   filePath: string;
 }
-
-const s3Client = new Bun.S3Client({
-  accessKeyId: env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-  bucket: env.S3_BUCKET,
-  region: env.S3_REGION,
-  endpoint: env.S3_ENDPOINT,
-});
 
 export async function uploadToS3({ name, filePath }: UploadToS3Props) {
   logger.info("Uploading backup to S3...");
