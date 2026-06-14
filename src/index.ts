@@ -2,6 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import { CronJob } from "cron";
 import { env } from "./env";
+import { deleteOldBackups } from "./helpers/deleteOldBackups";
 import { dumpToFile } from "./helpers/dumpToFile";
 import { uploadToS3 } from "./helpers/uploadToS3";
 import { deleteFile } from "./utils/deleteFile";
@@ -25,6 +26,8 @@ async function tryBackup() {
     await dumpToFile(filePath);
     await uploadToS3({ name: fileName, filePath });
     await deleteFile(filePath);
+
+    await deleteOldBackups();
 
     logger.break();
     logger.success("Backup completed successfully.");

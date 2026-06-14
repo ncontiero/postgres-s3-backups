@@ -7,6 +7,7 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 ## Features
 
 - **Automated Backups:** Schedule backups using cron expressions.
+- **Retention Policy:** Automatically delete old backups after a specified number of days.
 - **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.sh/docs/api/s3#support-for-s3-compatible-services).
 - **Compression:** Compresses backups using Gzip for efficient storage.
 - **Flexible:** Supports custom `pg_dump` options.
@@ -36,6 +37,7 @@ To configure the backup utility, you need to set the following environment varia
 | `DATABASE_URL`          | The connection URL for your PostgreSQL database.                                   |             |
 | `BACKUP_CRON_SCHEDULE`  | The cron schedule for backups. See [crontab.guru](https://crontab.guru/) for help. | `0 0 * * *` |
 | `BACKUP_FILE_PREFIX`    | The prefix for the backup file name.                                               | `backup`    |
+| `BACKUP_RETENTION_DAYS` | Number of days to keep backups before automatically deleting them.                 |             |
 | `BUCKET_SUBFOLDER`      | A subfolder within the bucket to store backups (optional).                         |             |
 | `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                         |             |
 | `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                                | `false`     |

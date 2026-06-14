@@ -27,6 +27,7 @@ export const env = createEnv({
       })
       .default("0 0 * * *"),
     BACKUP_FILE_PREFIX: z.string().default("backup"),
+    BACKUP_RETENTION_DAYS: z.coerce.number().int().min(1).optional(),
     BUCKET_SUBFOLDER: z.string().optional(),
     BACKUP_OPTIONS: z.string().optional(),
 
