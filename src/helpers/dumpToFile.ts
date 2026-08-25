@@ -20,7 +20,6 @@ export async function dumpToFile(filePath: string) {
   });
 
   const compressedStream = pgDumpProcess.stdout.pipeThrough(
-    // eslint-disable-next-line node/no-unsupported-features/node-builtins
     new CompressionStream("gzip"),
   );
   const writeCompressedDump = async () => {
