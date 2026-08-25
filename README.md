@@ -1,6 +1,6 @@
 # Postgres S3 Backups
 
-A simple utility to backup Postgres databases to S3-compatible services, built with [Bun](https://bun.sh/).
+A simple utility to backup Postgres databases to S3-compatible services, built with [Bun](https://bun.sh).
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/postgresql-s3-backups?referralCode=7y-eBI)
 
@@ -8,7 +8,7 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 
 - **Automated Backups:** Schedule backups using cron expressions.
 - **Retention Policy:** Automatically delete old backups after a specified number of days.
-- **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.sh/docs/api/s3#support-for-s3-compatible-services).
+- **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.sh/docs/runtime/s3#support-for-s3-compatible-services).
 - **Compression:** Compresses backups using Gzip for efficient storage.
 - **Flexible:** Supports custom `pg_dump` options.
 - **Run on Startup:** Option to run a backup immediately on startup.
@@ -18,31 +18,31 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 
 Before you begin, ensure you have met the following requirements:
 
-- You have installed the latest version of [Bun](https.bun.sh)
-- You have a working [PostgreSQL](https://www.postgresql.org/) database.
+- You have installed the latest version of [Bun](https://bun.sh)
+- You have a working [PostgreSQL](https://www.postgresql.org) database.
 - You have an S3-compatible storage service and your credentials.
-- Or, you have [Docker](https://www.docker.com/) installed to run the utility in a containerized environment.
+- Or, you have [Docker](https://www.docker.com) installed to run the utility in a containerized environment.
 
 ## Environment Variables
 
 To configure the backup utility, you need to set the following environment variables. You can create a `.env` file in the root of the project based on the [`.env.example`](.env.example) file.
 
-| Variable                | Description                                                                        | Default     |
-| ----------------------- | ---------------------------------------------------------------------------------- | ----------- |
-| `AWS_ACCESS_KEY_ID`     | Your S3 access key ID.                                                             |             |
-| `AWS_SECRET_ACCESS_KEY` | Your S3 secret access key.                                                         |             |
-| `S3_BUCKET`             | The name of your S3 bucket.                                                        |             |
-| `S3_REGION`             | The region of your S3 bucket.                                                      |             |
-| `S3_ENDPOINT`           | The endpoint for your S3-compatible service (optional).                            |             |
-| `DATABASE_URL`          | The connection URL for your PostgreSQL database.                                   |             |
-| `BACKUP_CRON_SCHEDULE`  | The cron schedule for backups. See [crontab.guru](https://crontab.guru/) for help. | `0 0 * * *` |
-| `BACKUP_FILE_PREFIX`    | The prefix for the backup file name.                                               | `backup`    |
-| `BACKUP_RETENTION_DAYS` | Number of days to keep backups before automatically deleting them.                 |             |
-| `BUCKET_SUBFOLDER`      | A subfolder within the bucket to store backups (optional).                         |             |
-| `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                         |             |
-| `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                                | `false`     |
-| `SINGLE_SHOT_MODE`      | Whether to run a single backup and then exit.                                      | `false`     |
-| `PG_VERSION`            | The version of PostgreSQL to use for `pg_dump` on Docker.                          | `18`        |
+| Variable                | Description                                                                       | Default     |
+| ----------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `AWS_ACCESS_KEY_ID`     | Your S3 access key ID.                                                            |             |
+| `AWS_SECRET_ACCESS_KEY` | Your S3 secret access key.                                                        |             |
+| `S3_BUCKET`             | The name of your S3 bucket.                                                       |             |
+| `S3_REGION`             | The region of your S3 bucket.                                                     |             |
+| `S3_ENDPOINT`           | The endpoint for your S3-compatible service (optional).                           |             |
+| `DATABASE_URL`          | The connection URL for your PostgreSQL database.                                  |             |
+| `BACKUP_CRON_SCHEDULE`  | The cron schedule for backups. See [crontab.guru](https://crontab.guru) for help. | `0 0 * * *` |
+| `BACKUP_FILE_PREFIX`    | The prefix for the backup file name.                                              | `backup`    |
+| `BACKUP_RETENTION_DAYS` | Number of days to keep backups before automatically deleting them.                |             |
+| `BUCKET_SUBFOLDER`      | A subfolder within the bucket to store backups (optional).                        |             |
+| `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                        |             |
+| `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                               | `false`     |
+| `SINGLE_SHOT_MODE`      | Whether to run a single backup and then exit.                                     | `false`     |
+| `PG_VERSION`            | The version of PostgreSQL to use for `pg_dump` on Docker.                         | `18`        |
 
 ## Usage
 
