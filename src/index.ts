@@ -5,7 +5,7 @@ import { env } from "./env";
 import { deleteOldBackups } from "./helpers/deleteOldBackups";
 import { dumpToFile } from "./helpers/dumpToFile";
 import { uploadToS3 } from "./helpers/uploadToS3";
-import { deleteFile } from "./utils/deleteFile";
+import { cleanupTemporaryFile } from "./utils/cleanupTemporaryFile";
 import { logger } from "./utils/logger";
 
 async function tryBackup() {
@@ -24,9 +24,12 @@ async function tryBackup() {
     const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.tar.gz`;
     const filePath = path.join(os.tmpdir(), fileName);
 
-    await dumpToFile(filePath);
-    await uploadToS3({ name: fileName, filePath });
-    await deleteFile(filePath);
+    try {
+      await dumpToFile(filePath);
+      await uploadToS3({ name: fileName, filePath });
+    } finally {
+      await cleanupTemporaryFile(filePath);
+    }
 
     await deleteOldBackups();
 
