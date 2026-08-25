@@ -13,14 +13,15 @@ async function tryBackup() {
     logger.info("Starting backup...");
     logger.break();
 
-    const isPgDumpAvailable = Bun.which("pg_dump");
-    if (!isPgDumpAvailable) {
-      throw new Error("pg_dump is not available.");
+    for (const command of ["pg_dump", "tar"]) {
+      if (!Bun.which(command)) {
+        throw new Error(`${command} is not available.`);
+      }
     }
 
     const date = new Date().toISOString();
     const timestamp = date.replaceAll(/[:.]/g, "-");
-    const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.sql.gz`;
+    const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.tar.gz`;
     const filePath = path.join(os.tmpdir(), fileName);
 
     await dumpToFile(filePath);

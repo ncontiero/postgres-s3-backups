@@ -9,7 +9,7 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 - **Automated Backups:** Schedule backups using cron expressions.
 - **Retention Policy:** Automatically delete old backups after a specified number of days.
 - **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.sh/docs/runtime/s3#support-for-s3-compatible-services).
-- **Compression:** Compresses backups using Gzip for efficient storage.
+- **Compression:** Compresses PostgreSQL tar archives with Gzip for efficient storage.
 - **Flexible:** Supports custom `pg_dump` options.
 - **Run on Startup:** Option to run a backup immediately on startup.
 - **Single Shot Mode:** Run once and exit, ideal for CI/CD pipelines.
@@ -19,7 +19,7 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 Before you begin, ensure you have met the following requirements:
 
 - You have installed the latest version of [Bun](https://bun.sh)
-- You have a working [PostgreSQL](https://www.postgresql.org) database.
+- You have a working [PostgreSQL](https://www.postgresql.org) database and the `pg_dump` client tool.
 - You have an S3-compatible storage service and your credentials.
 - Or, you have [Docker](https://www.docker.com) installed to run the utility in a containerized environment.
 
@@ -42,7 +42,7 @@ To configure the backup utility, you need to set the following environment varia
 | `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                        |             |
 | `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                               | `false`     |
 | `SINGLE_SHOT_MODE`      | Whether to run a single backup and then exit.                                     | `false`     |
-| `PG_VERSION`            | The version of PostgreSQL to use for `pg_dump` on Docker.                         | `18`        |
+| `PG_VERSION`            | Docker build argument selecting the PostgreSQL client version.                    | `18`        |
 
 ## Usage
 
@@ -70,10 +70,25 @@ You can also run this utility using Docker. First, build the Docker image:
 docker build -t postgres-s3-backups .
 ```
 
+To use a different supported PostgreSQL client version, pass it while building the image:
+
+```bash
+docker build --build-arg PG_VERSION=17 -t postgres-s3-backups .
+```
+
 Then, you can run the backup utility using the following command. Remember to replace the placeholder values with your actual environment variables.
 
 ```bash
 docker run --env-file .env postgres-s3-backups
+```
+
+## Restoring a Backup
+
+Backups use a Gzip-compressed PostgreSQL tar archive. Decompress the archive and pipe it into `pg_restore`:
+
+```bash
+gzip --decompress --stdout backup.tar.gz \
+  | pg_restore --dbname="postgresql://user:password@host:port/database"
 ```
 
 ## References and inspirations

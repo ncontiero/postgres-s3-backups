@@ -5,19 +5,52 @@ import { logger } from "../utils/logger";
 export async function dumpToFile(filePath: string) {
   logger.info("Dumping database to file...");
 
-  const pgDumpArgs = [`--dbname=${env.DATABASE_URL}`, "--format=tar"];
+  const pgDumpArgs = [`--dbname=${env.DATABASE_URL}`];
 
   if (env.BACKUP_OPTIONS) {
     const extraOptions = env.BACKUP_OPTIONS.split(" ");
     pgDumpArgs.push(...extraOptions);
   }
 
+  pgDumpArgs.push("--format=tar");
+
   const pgDumpProcess = Bun.spawn({
     cmd: ["pg_dump", ...pgDumpArgs],
     stderr: "inherit",
   });
 
-  const pgDumpProcessCode = await pgDumpProcess.exited;
+  const compressedStream = pgDumpProcess.stdout.pipeThrough(
+    // eslint-disable-next-line node/no-unsupported-features/node-builtins
+    new CompressionStream("gzip"),
+  );
+  const writeCompressedDump = async () => {
+    const writer = Bun.file(filePath).writer();
+
+    try {
+      for await (const chunk of compressedStream) {
+        void writer.write(chunk);
+      }
+    } finally {
+      await writer.end();
+    }
+  };
+
+  let pgDumpProcessCode: number;
+  try {
+    [pgDumpProcessCode] = await Promise.all([
+      pgDumpProcess.exited,
+      writeCompressedDump(),
+    ]);
+  } catch (error) {
+    if (pgDumpProcess.exitCode === null) {
+      pgDumpProcess.kill();
+      await pgDumpProcess.exited;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to write the compressed database dump: ${message}`);
+  }
+
   if (pgDumpProcessCode !== 0) {
     logger.error(
       `pg_dump process exited with code ${pgDumpProcessCode}; check for errors above.`,
@@ -25,33 +58,27 @@ export async function dumpToFile(filePath: string) {
     throw new Error("Failed to dump the database.");
   }
 
-  const gzipProcess = Bun.spawn({
-    cmd: ["gzip"],
-    stdin: pgDumpProcess.stdout,
-    stdout: Bun.file(filePath),
+  const backupFile = Bun.file(filePath);
+  if (backupFile.size === 0) {
+    throw new Error("The database dump archive is empty.");
+  }
+
+  const tarProcess = Bun.spawn({
+    cmd: ["tar", "-tzf", filePath, "toc.dat", "restore.sql"],
+    stdout: "ignore",
     stderr: "inherit",
   });
 
-  const gzipProcessCode = await gzipProcess.exited;
-  if (gzipProcessCode !== 0) {
+  const tarProcessCode = await tarProcess.exited;
+  if (tarProcessCode !== 0) {
     logger.error(
-      `gzip process exited with code ${gzipProcessCode}; check for errors above.`,
+      `tar process exited with code ${tarProcessCode}; check for errors above.`,
     );
-    throw new Error("Failed to compress the database dump.");
+    throw new Error("Invalid database dump archive.");
   }
 
-  // Check if archive is valid and contains data
-  const isValidArchive = Bun.spawnSync({
-    cmd: ["tar", "-tzf", filePath],
-  });
-
-  if (isValidArchive.exitCode !== 0) {
-    logger.error("The database dump archive is invalid or empty.");
-    throw new Error("Invalid database dump archive");
-  }
-
-  logger.info("Database dump archive is valid and contains data.");
-  logger.info(`Database filesize: ${filesize(Bun.file(filePath).size)}`);
+  logger.info("Database dump archive is valid.");
+  logger.info(`Database filesize: ${filesize(backupFile.size)}`);
 
   logger.success("Database dumped successfully.");
   logger.break();
