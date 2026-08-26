@@ -1,6 +1,6 @@
 # Postgres S3 Backups
 
-A simple utility to backup Postgres databases to S3-compatible services, built with [Bun](https://bun.sh).
+A simple utility to back up Postgres databases to S3-compatible services, built with [Bun](https://bun.com).
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/postgresql-s3-backups?referralCode=7y-eBI)
 
@@ -8,7 +8,8 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 
 - **Automated Backups:** Schedule backups using cron expressions.
 - **Retention Policy:** Automatically delete old backups after a specified number of days.
-- **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.sh/docs/runtime/s3#support-for-s3-compatible-services).
+- **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.com/docs/runtime/s3#support-for-s3-compatible-services).
+- **Automatic Multipart Uploads:** Bun automatically selects regular or multipart uploads based on the backup size.
 - **Compression:** Compresses PostgreSQL tar archives with Gzip for efficient storage.
 - **Flexible:** Supports custom `pg_dump` options.
 - **Run on Startup:** Option to run a backup immediately on startup.
@@ -18,8 +19,8 @@ A simple utility to backup Postgres databases to S3-compatible services, built w
 
 Before you begin, ensure you have met the following requirements:
 
-- You have installed the latest version of [Bun](https://bun.sh)
-- You have a working [PostgreSQL](https://www.postgresql.org) database and the `pg_dump` client tool.
+- You have installed [Bun](https://bun.com) 1.4 or later.
+- You have a working [PostgreSQL](https://www.postgresql.org) database and a compatible `pg_dump` client. The Docker image supports PostgreSQL clients 14 through 18.
 - You have an S3-compatible storage service and your credentials.
 - Or, you have [Docker](https://www.docker.com) installed to run the utility in a containerized environment.
 
@@ -42,7 +43,6 @@ To configure the backup utility, you need to set the following environment varia
 | `BACKUP_OPTIONS`        | Extra options to pass to the `pg_dump` command (optional).                        |             |
 | `RUN_ON_STARTUP`        | Whether to run a backup on startup.                                               | `false`     |
 | `SINGLE_SHOT_MODE`      | Whether to run a single backup and then exit.                                     | `false`     |
-| `PG_VERSION`            | Docker build argument selecting the PostgreSQL client version.                    | `18`        |
 
 ## Usage
 
@@ -76,11 +76,19 @@ To use a different supported PostgreSQL client version, pass it while building t
 docker build --build-arg PG_VERSION=17 -t postgres-s3-backups .
 ```
 
+`PG_VERSION` accepts versions 14 through 18 and defaults to `18`. Prefer the client version that matches your PostgreSQL server.
+
 Then, you can run the backup utility using the following command. Remember to replace the placeholder values with your actual environment variables.
 
 ```bash
 docker run --env-file .env postgres-s3-backups
 ```
+
+## Failure Behavior
+
+- A dump, archive validation or upload failure fails the current backup. In single-shot mode, the process exits with status `1`; in scheduled mode, the error is logged and future executions remain scheduled.
+- A retention cleanup failure does not invalidate a backup that was already uploaded. It is reported separately as a warning.
+- A local temporary-file cleanup failure is logged separately and does not remove or invalidate an uploaded backup. Check the system temporary directory if this happens.
 
 ## Restoring a Backup
 
