@@ -13,19 +13,21 @@ COPY . .
 
 RUN bun run build
 
-FROM base AS runner
+FROM debian:trixie-slim@sha256:d7e12182ce18b85b93007c1dedf31f2d29e01ccf3182cc4017c709b6259bc132 AS runner
+
+WORKDIR /app
 
 ARG PG_VERSION="18"
 
 RUN apt-get update && \
-    apt-get install -y postgresql-common && \
+    apt-get install -y --no-install-recommends ca-certificates postgresql-common && \
     yes "" | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh && \
-    apt-get install -y postgresql-client-${PG_VERSION} && \
+    apt-get install -y --no-install-recommends postgresql-client-${PG_VERSION} && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/postgres-s3-backup .
+COPY --from=builder --chown=backup:backup /app/postgres-s3-backup .
 
-USER bun
+USER backup
 
 CMD [ "./postgres-s3-backup" ]
