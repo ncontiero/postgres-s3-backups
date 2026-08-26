@@ -12,10 +12,11 @@
   "scripts": {
     "build": "bun build --compile --minify --sourcemap src/index.ts --outfile postgres-s3-backup",
     "start": "bun run src/index.ts",
+    "test": "bun test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "check": "bun run lint && bun run typecheck"
+    "check": "bun run lint && bun run typecheck && bun run test"
   },
   "dependencies": {
     "@t3-oss/env-core": "0.13.11",

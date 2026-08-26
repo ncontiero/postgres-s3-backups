@@ -62,6 +62,20 @@ Create a `.env` file in the root of the project and add the required environment
 bun start
 ```
 
+## Testing
+
+Run the unit test suite with Bun's native test runner:
+
+```bash
+bun test
+```
+
+Run linting, type checking and tests together:
+
+```bash
+bun run check
+```
+
 ## Running with Docker
 
 You can also run this utility using Docker. First, build the Docker image:
