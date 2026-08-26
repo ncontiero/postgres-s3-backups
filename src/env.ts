@@ -1,9 +1,10 @@
 import { createEnv } from "@t3-oss/env-core";
-import { z } from "zod";
+import * as z from "zod/mini";
 
-const booleanSchema = z.string().transform((val) => {
-  return val.toLowerCase() === "true" || val === "1";
-});
+const booleanSchema = z.pipe(
+  z.string(),
+  z.transform((val: string) => val.toLowerCase() === "true" || val === "1"),
+);
 
 function isValidCronExpression(value: string) {
   try {
@@ -23,23 +24,27 @@ export const env = createEnv({
     }),
     S3_BUCKET: z.string({ error: "invalid or missing S3_BUCKET" }),
     S3_REGION: z.string({ error: "invalid or missing S3_REGION" }),
-    S3_ENDPOINT: z.string().optional(),
+    S3_ENDPOINT: z.optional(z.string()),
 
     DATABASE_URL: z.url({ error: "invalid or missing DATABASE_URL" }),
 
-    BACKUP_CRON_SCHEDULE: z
-      .string()
-      .refine(isValidCronExpression, {
-        error: "invalid BACKUP_CRON_SCHEDULE format",
-      })
-      .default("0 0 * * *"),
-    BACKUP_FILE_PREFIX: z.string().default("backup"),
-    BACKUP_RETENTION_DAYS: z.coerce.number().int().min(1).optional(),
-    BUCKET_SUBFOLDER: z.string().optional(),
-    BACKUP_OPTIONS: z.string().optional(),
+    BACKUP_CRON_SCHEDULE: z._default(
+      z.string().check(
+        z.refine(isValidCronExpression, {
+          error: "invalid BACKUP_CRON_SCHEDULE format",
+        }),
+      ),
+      "0 0 * * *",
+    ),
+    BACKUP_FILE_PREFIX: z._default(z.string(), "backup"),
+    BACKUP_RETENTION_DAYS: z.optional(
+      z.pipe(z.coerce.number(), z.int().check(z.minimum(1))),
+    ),
+    BUCKET_SUBFOLDER: z.optional(z.string()),
+    BACKUP_OPTIONS: z.optional(z.string()),
 
-    RUN_ON_STARTUP: booleanSchema.default(false),
-    SINGLE_SHOT_MODE: booleanSchema.default(false),
+    RUN_ON_STARTUP: z._default(booleanSchema, false),
+    SINGLE_SHOT_MODE: z._default(booleanSchema, false),
   },
 
   runtimeEnv: Bun.env,
