@@ -51,11 +51,23 @@ function logBackupFailure(error: unknown) {
   console.error(error);
 }
 
+let isBackupRunning = false;
+
 async function runScheduledBackup() {
+  if (isBackupRunning) {
+    logger.warn("Backup already in progress, skipping scheduled run.");
+    logger.break();
+    return;
+  }
+
+  isBackupRunning = true;
+
   try {
     await runBackup();
   } catch (error) {
     logBackupFailure(error);
+  } finally {
+    isBackupRunning = false;
   }
 }
 
