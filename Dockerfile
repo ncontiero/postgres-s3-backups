@@ -23,6 +23,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates postgresql-common && \
     yes "" | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh && \
     apt-get install -y --no-install-recommends postgresql-client-${PG_VERSION} && \
+    apt-get purge -y --auto-remove postgresql-common && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
