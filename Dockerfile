@@ -19,7 +19,11 @@ WORKDIR /app
 
 ARG PG_VERSION="18"
 
-RUN apt-get update && \
+RUN case "$PG_VERSION" in \
+      14|15|16|17|18) ;; \
+      *) echo "Unsupported PostgreSQL version: $PG_VERSION (expected 14-18)." >&2; exit 1 ;; \
+    esac && \
+    apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates postgresql-common && \
     yes "" | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh && \
     apt-get install -y --no-install-recommends postgresql-client-${PG_VERSION} && \
