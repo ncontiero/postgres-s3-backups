@@ -5,7 +5,7 @@ import { logger } from "../utils/logger";
 export async function dumpToFile(filePath: string) {
   logger.info("Dumping database to file...");
 
-  const pgDumpArgs = [`--dbname=${env.DATABASE_URL}`];
+  const pgDumpArgs: string[] = [];
 
   if (env.BACKUP_OPTIONS) {
     const extraOptions = env.BACKUP_OPTIONS.split(" ");
@@ -16,6 +16,10 @@ export async function dumpToFile(filePath: string) {
 
   const pgDumpProcess = Bun.spawn({
     cmd: ["pg_dump", ...pgDumpArgs],
+    env: {
+      ...Bun.env,
+      PGDATABASE: env.DATABASE_URL,
+    },
     stderr: "inherit",
   });
 
