@@ -7,51 +7,63 @@ import { uploadToS3 } from "./helpers/uploadToS3";
 import { cleanupTemporaryFile } from "./utils/cleanupTemporaryFile";
 import { logger } from "./utils/logger";
 
-async function tryBackup() {
+async function runBackup() {
+  logger.info("Starting backup...");
+  logger.break();
+
+  for (const command of ["pg_dump", "tar"]) {
+    if (!Bun.which(command)) {
+      throw new Error(`${command} is not available.`);
+    }
+  }
+
+  const date = new Date().toISOString();
+  const timestamp = date.replaceAll(/[:.]/g, "-");
+  const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.tar.gz`;
+  const filePath = path.join(os.tmpdir(), fileName);
+
   try {
-    logger.info("Starting backup...");
-    logger.break();
+    await dumpToFile(filePath);
+    await uploadToS3({ name: fileName, filePath });
+  } finally {
+    await cleanupTemporaryFile(filePath);
+  }
 
-    for (const command of ["pg_dump", "tar"]) {
-      if (!Bun.which(command)) {
-        throw new Error(`${command} is not available.`);
-      }
-    }
+  await deleteOldBackups();
 
-    const date = new Date().toISOString();
-    const timestamp = date.replaceAll(/[:.]/g, "-");
-    const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.tar.gz`;
-    const filePath = path.join(os.tmpdir(), fileName);
+  logger.break();
+  logger.success("Backup completed successfully.");
+}
 
-    try {
-      await dumpToFile(filePath);
-      await uploadToS3({ name: fileName, filePath });
-    } finally {
-      await cleanupTemporaryFile(filePath);
-    }
+function logBackupFailure(error: unknown) {
+  logger.error("Backup failed:");
+  console.error(error);
+}
 
-    await deleteOldBackups();
-
-    logger.break();
-    logger.success("Backup completed successfully.");
+async function runScheduledBackup() {
+  try {
+    await runBackup();
   } catch (error) {
-    logger.error("Backup failed:");
-    console.error(error);
-    process.exit(1);
+    logBackupFailure(error);
   }
 }
 
-if (env.RUN_ON_STARTUP || env.SINGLE_SHOT_MODE) {
-  await tryBackup();
-
-  if (env.SINGLE_SHOT_MODE) {
-    process.exit(0);
+if (env.SINGLE_SHOT_MODE) {
+  try {
+    await runBackup();
+  } catch (error) {
+    logBackupFailure(error);
+    process.exitCode = 1;
   }
+} else {
+  if (env.RUN_ON_STARTUP) {
+    await runScheduledBackup();
+  }
+
+  Bun.cron(env.BACKUP_CRON_SCHEDULE, runScheduledBackup);
+
+  logger.info(
+    `Backup job scheduled with cron pattern: ${env.BACKUP_CRON_SCHEDULE}`,
+  );
+  logger.break();
 }
-
-Bun.cron(env.BACKUP_CRON_SCHEDULE, tryBackup);
-
-logger.info(
-  `Backup job scheduled with cron pattern: ${env.BACKUP_CRON_SCHEDULE}`,
-);
-logger.break();
