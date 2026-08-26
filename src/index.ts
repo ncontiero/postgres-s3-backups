@@ -1,6 +1,5 @@
 import os from "node:os";
 import path from "node:path";
-import { CronJob } from "cron";
 import { env } from "./env";
 import { deleteOldBackups } from "./helpers/deleteOldBackups";
 import { dumpToFile } from "./helpers/dumpToFile";
@@ -50,9 +49,7 @@ if (env.RUN_ON_STARTUP || env.SINGLE_SHOT_MODE) {
   }
 }
 
-const job = new CronJob(env.BACKUP_CRON_SCHEDULE, tryBackup);
-
-job.start();
+Bun.cron(env.BACKUP_CRON_SCHEDULE, tryBackup);
 
 logger.info(
   `Backup job scheduled with cron pattern: ${env.BACKUP_CRON_SCHEDULE}`,

@@ -1,10 +1,17 @@
 import { createEnv } from "@t3-oss/env-core";
-import { validateCronExpression } from "cron";
 import { z } from "zod";
 
 const booleanSchema = z.string().transform((val) => {
   return val.toLowerCase() === "true" || val === "1";
 });
+
+function isValidCronExpression(value: string) {
+  try {
+    return Bun.cron.parse(value) !== null;
+  } catch {
+    return false;
+  }
+}
 
 export const env = createEnv({
   server: {
@@ -22,7 +29,7 @@ export const env = createEnv({
 
     BACKUP_CRON_SCHEDULE: z
       .string()
-      .refine((val) => validateCronExpression(val).valid, {
+      .refine(isValidCronExpression, {
         error: "invalid BACKUP_CRON_SCHEDULE format",
       })
       .default("0 0 * * *"),
