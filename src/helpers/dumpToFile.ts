@@ -1,11 +1,15 @@
 import { env } from "../env";
 import { formatFileSize } from "../utils/formatFileSize";
 import { logger } from "../utils/logger";
+import { prepareDatabaseConnection } from "../utils/prepareDatabaseConnection";
 
 export async function dumpToFile(filePath: string) {
   logger.info("Dumping database to file...");
 
-  const pgDumpArgs: string[] = [];
+  const { connectionString, password } = prepareDatabaseConnection(
+    env.DATABASE_URL,
+  );
+  const pgDumpArgs = [`--dbname=${connectionString}`];
 
   if (env.BACKUP_OPTIONS) {
     const extraOptions = env.BACKUP_OPTIONS.split(" ");
@@ -14,12 +18,17 @@ export async function dumpToFile(filePath: string) {
 
   pgDumpArgs.push("--format=tar");
 
+  const pgDumpEnvironment = { ...Bun.env };
+  delete pgDumpEnvironment.DATABASE_URL;
+  delete pgDumpEnvironment.PGDATABASE;
+
+  if (password !== undefined) {
+    pgDumpEnvironment.PGPASSWORD = password;
+  }
+
   const pgDumpProcess = Bun.spawn({
     cmd: ["pg_dump", ...pgDumpArgs],
-    env: {
-      ...Bun.env,
-      PGDATABASE: env.DATABASE_URL,
-    },
+    env: pgDumpEnvironment,
     stderr: "inherit",
   });
 
