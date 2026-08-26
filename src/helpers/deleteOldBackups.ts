@@ -16,7 +16,6 @@ export async function deleteOldBackups() {
     ? `${env.BUCKET_SUBFOLDER}/${env.BACKUP_FILE_PREFIX}`
     : env.BACKUP_FILE_PREFIX;
 
-  let isTruncated = true;
   let continuationToken: string | undefined;
 
   const now = new Date();
@@ -26,7 +25,7 @@ export async function deleteOldBackups() {
 
   let deletedCount = 0;
 
-  while (isTruncated) {
+  while (true) {
     const response = await s3Client.list({
       prefix,
       continuationToken,
@@ -49,10 +48,18 @@ export async function deleteOldBackups() {
       }
     }
 
-    isTruncated = response.isTruncated ?? false;
-    if (isTruncated) {
-      continuationToken = response.nextContinuationToken;
+    if (!response.isTruncated) {
+      break;
     }
+
+    const { nextContinuationToken } = response;
+    if (!nextContinuationToken || nextContinuationToken === continuationToken) {
+      throw new Error(
+        "S3 returned a truncated backup list without a valid continuation token.",
+      );
+    }
+
+    continuationToken = nextContinuationToken;
   }
 
   if (deletedCount > 0) {
