@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@t3-oss/env-core": "0.13.11",
-    "colorette": "2.0.20",
     "zod": "4.4.3"
   },
   "devDependencies": {

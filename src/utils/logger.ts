@@ -1,33 +1,22 @@
 /* eslint-disable no-console */
-import util from "node:util";
-import { isMainThread, parentPort } from "node:worker_threads";
-import { blue, green, red, yellow } from "colorette";
 
 type LOG_TYPE = "info" | "success" | "error" | "warn";
 
-const colorFunctions = {
-  info: blue,
-  success: green,
-  error: red,
-  warn: yellow,
+const ANSI_RESET = "\u{1B}[0m";
+const colors = {
+  info: "blue",
+  success: "green",
+  error: "red",
+  warn: "yellow",
 };
 
-export function colorize(type: LOG_TYPE, data: string | number) {
-  return colorFunctions[type]?.(data) ?? data;
+function colorize(type: LOG_TYPE, data: string | number) {
+  const color = Bun.color(colors[type], "ansi");
+  return color ? `${color}${data}${ANSI_RESET}` : String(data);
 }
 
-export function createLogger(type: LOG_TYPE, ...data: (string | number)[]) {
+function createLogger(type: LOG_TYPE, ...data: (string | number)[]) {
   const args = data.map((item) => colorize(type, item));
-  const messageType = type === "error" ? "error" : "log";
-  const formattedMessage = util.format(...args);
-
-  if (!isMainThread) {
-    parentPort?.postMessage({
-      type: messageType,
-      text: formattedMessage,
-    });
-    return;
-  }
 
   if (type === "error") {
     console.error(...args);
@@ -36,7 +25,7 @@ export function createLogger(type: LOG_TYPE, ...data: (string | number)[]) {
   }
 }
 
-export function createLoggerMethod(type: LOG_TYPE) {
+function createLoggerMethod(type: LOG_TYPE) {
   return (...args: (string | number)[]) => createLogger(type, ...args);
 }
 
