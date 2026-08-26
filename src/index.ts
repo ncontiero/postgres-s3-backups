@@ -11,12 +11,6 @@ async function runBackup() {
   logger.info("Starting backup...");
   logger.break();
 
-  for (const command of ["pg_dump", "tar"]) {
-    if (!Bun.which(command)) {
-      throw new Error(`${command} is not available.`);
-    }
-  }
-
   const date = new Date().toISOString();
   const timestamp = date.replaceAll(/[:.]/g, "-");
   const fileName = `${env.BACKUP_FILE_PREFIX}-${timestamp}.tar.gz`;
@@ -44,6 +38,14 @@ async function runBackup() {
   logger.success("Backup completed successfully.");
 }
 
+function validateRequiredCommands() {
+  for (const command of ["pg_dump", "tar"]) {
+    if (!Bun.which(command)) {
+      throw new Error(`${command} is not available.`);
+    }
+  }
+}
+
 function logBackupFailure(error: unknown) {
   logger.error("Backup failed:");
   console.error(error);
@@ -57,14 +59,14 @@ async function runScheduledBackup() {
   }
 }
 
-if (env.SINGLE_SHOT_MODE) {
-  try {
+async function main() {
+  validateRequiredCommands();
+
+  if (env.SINGLE_SHOT_MODE) {
     await runBackup();
-  } catch (error) {
-    logBackupFailure(error);
-    process.exitCode = 1;
+    return;
   }
-} else {
+
   if (env.RUN_ON_STARTUP) {
     await runScheduledBackup();
   }
@@ -75,4 +77,11 @@ if (env.SINGLE_SHOT_MODE) {
     `Backup job scheduled with cron pattern: ${env.BACKUP_CRON_SCHEDULE}`,
   );
   logger.break();
+}
+
+try {
+  await main();
+} catch (error) {
+  logBackupFailure(error);
+  process.exitCode = 1;
 }
