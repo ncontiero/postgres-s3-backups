@@ -29,7 +29,16 @@ async function runBackup() {
     await cleanupTemporaryFile(filePath);
   }
 
-  await deleteOldBackups();
+  try {
+    await deleteOldBackups();
+  } catch (error) {
+    logger.error("Failed to delete old backups:");
+    console.error(error);
+
+    logger.break();
+    logger.warn("Backup uploaded successfully, but retention cleanup failed.");
+    return;
+  }
 
   logger.break();
   logger.success("Backup completed successfully.");
