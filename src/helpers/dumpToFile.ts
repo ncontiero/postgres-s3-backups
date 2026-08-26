@@ -1,5 +1,5 @@
-import { filesize } from "filesize";
 import { env } from "../env";
+import { formatFileSize } from "../utils/formatFileSize";
 import { logger } from "../utils/logger";
 
 export async function dumpToFile(filePath: string) {
@@ -77,7 +77,7 @@ export async function dumpToFile(filePath: string) {
   }
 
   logger.info("Database dump archive is valid.");
-  logger.info(`Database filesize: ${filesize(backupFile.size)}`);
+  logger.info(`Database filesize: ${formatFileSize(backupFile.size)}`);
 
   logger.success("Database dumped successfully.");
   logger.break();
