@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { randomUUID } from "node:crypto";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 interface ListedBackup {
   key: string;
@@ -30,12 +33,23 @@ const list = mock((): ListResponse => {
   return response;
 });
 const deleteObject = mock<(key: string) => void>(() => {});
-const write = mock<(name: string, file: Blob) => number>(() => 0);
+const write = mock<(name: string, file: Blob) => Promise<void>>(async () => {});
+const writeChunk = mock<(chunk: Uint8Array) => number>(() => 0);
+const end = mock<() => Promise<void>>(async () => {});
+const createWriter = mock(() => ({
+  write: writeChunk,
+  end,
+}));
+const file = mock((name: string) => {
+  void name;
+  return { writer: createWriter };
+});
 
 void mock.module("../env", () => ({ env: testEnvironment }));
 void mock.module("../lib/s3", () => ({
   s3Client: {
     delete: deleteObject,
+    file,
     list,
     write,
   },
@@ -52,6 +66,21 @@ void mock.module("../utils/logger", () => ({
 
 const { deleteOldBackups } = await import("./deleteOldBackups");
 const { uploadToS3 } = await import("./uploadToS3");
+
+const multipartUploadThreshold = 5 * 1024 * 1024;
+const temporaryFiles = new Set<string>();
+
+async function createTemporaryFile(size: number) {
+  const filePath = path.join(
+    os.tmpdir(),
+    `postgres-s3-backups-${randomUUID()}.tar.gz`,
+  );
+
+  await Bun.write(filePath, new Uint8Array(size));
+  temporaryFiles.add(filePath);
+
+  return filePath;
+}
 
 async function expectToReject(
   operation: () => Promise<unknown>,
@@ -76,7 +105,23 @@ beforeEach(() => {
   listResponses.length = 0;
   list.mockClear();
   deleteObject.mockClear();
+  file.mockClear();
+  createWriter.mockClear();
+  writeChunk.mockClear();
+  end.mockClear();
   write.mockClear();
+});
+
+afterEach(async () => {
+  for (const filePath of temporaryFiles) {
+    const temporaryFile = Bun.file(filePath);
+
+    if (await temporaryFile.exists()) {
+      await temporaryFile.delete();
+    }
+  }
+
+  temporaryFiles.clear();
 });
 
 describe("deleteOldBackups", () => {
@@ -166,38 +211,86 @@ describe("deleteOldBackups", () => {
 });
 
 describe("uploadToS3", () => {
-  test("uploads to the bucket root when no subfolder is configured", async () => {
-    await uploadToS3({
-      name: "backup.tar.gz",
-      filePath: "/tmp/backup.tar.gz",
-    });
-
-    expect(write.mock.calls[0]?.[0]).toBe("backup.tar.gz");
-  });
-
-  test("uploads a BunFile using the configured subfolder", async () => {
-    testEnvironment.BUCKET_SUBFOLDER = "postgres";
+  test("uses a direct upload for files up to 5 MiB", async () => {
+    const filePath = await createTemporaryFile(multipartUploadThreshold);
 
     await uploadToS3({
       name: "backup.tar.gz",
-      filePath: "/tmp/backup.tar.gz",
+      filePath,
     });
 
     expect(write).toHaveBeenCalledTimes(1);
-    expect(write.mock.calls[0]?.[0]).toBe("postgres/backup.tar.gz");
+    expect(write.mock.calls[0]?.[0]).toBe("backup.tar.gz");
     expect(write.mock.calls[0]?.[1]).toBeInstanceOf(Blob);
+    expect(file).not.toHaveBeenCalled();
   });
 
-  test("propagates upload failures", async () => {
-    write.mockImplementationOnce(() => {
-      throw new Error("S3 unavailable");
+  test("streams larger files to a subfolder and awaits finalization", async () => {
+    testEnvironment.BUCKET_SUBFOLDER = "postgres";
+    const filePath = await createTemporaryFile(multipartUploadThreshold + 1);
+
+    let signalEndCalled: () => void = () => {};
+    const endCalled = new Promise<void>((resolve) => {
+      signalEndCalled = resolve;
     });
+    let finishEnd: () => void = () => {};
+    const endPending = new Promise<void>((resolve) => {
+      finishEnd = resolve;
+    });
+
+    end.mockImplementationOnce(async () => {
+      signalEndCalled();
+      await endPending;
+    });
+
+    let uploadFinished = false;
+    const upload = (async () => {
+      await uploadToS3({
+        name: "backup.tar.gz",
+        filePath,
+      });
+      uploadFinished = true;
+    })();
+
+    await endCalled;
+
+    expect(uploadFinished).toBe(false);
+    expect(file).toHaveBeenCalledTimes(1);
+    expect(file).toHaveBeenCalledWith("postgres/backup.tar.gz");
+    expect(createWriter).toHaveBeenCalledTimes(1);
+    expect(writeChunk).toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
+
+    finishEnd();
+    await upload;
+
+    expect(end).toHaveBeenCalledTimes(1);
+    expect(uploadFinished).toBe(true);
+  });
+
+  test("propagates direct upload failures", async () => {
+    const filePath = await createTemporaryFile(1);
+
+    write.mockRejectedValueOnce(new Error("S3 unavailable"));
 
     await expectToReject(async () => {
       await uploadToS3({
         name: "backup.tar.gz",
-        filePath: "/tmp/backup.tar.gz",
+        filePath,
       });
     }, "S3 unavailable");
+  });
+
+  test("propagates multipart finalization failures", async () => {
+    const filePath = await createTemporaryFile(multipartUploadThreshold + 1);
+
+    end.mockRejectedValueOnce(new Error("Multipart finalization failed"));
+
+    await expectToReject(async () => {
+      await uploadToS3({
+        name: "backup.tar.gz",
+        filePath,
+      });
+    }, "Multipart finalization failed");
   });
 });

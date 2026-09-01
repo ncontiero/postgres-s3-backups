@@ -7,6 +7,8 @@ interface UploadToS3Props {
   filePath: string;
 }
 
+const MULTIPART_UPLOAD_THRESHOLD = 5 * 1024 * 1024; // 5MB
+
 export async function uploadToS3({ name, filePath }: UploadToS3Props) {
   logger.info("Uploading backup to S3...");
 
@@ -14,7 +16,20 @@ export async function uploadToS3({ name, filePath }: UploadToS3Props) {
     name = `${env.BUCKET_SUBFOLDER}/${name}`;
   }
 
-  await s3Client.write(name, Bun.file(filePath));
+  const localFile = Bun.file(filePath);
+  if (localFile.size > MULTIPART_UPLOAD_THRESHOLD) {
+    logger.info("Large file detected, using multipart upload...");
+
+    const writer = s3Client.file(name).writer();
+
+    for await (const chunk of localFile.stream()) {
+      void writer.write(chunk);
+    }
+
+    await writer.end();
+  } else {
+    await s3Client.write(name, localFile);
+  }
 
   logger.success("Upload completed.");
 }

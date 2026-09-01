@@ -9,7 +9,7 @@ A simple utility to back up Postgres databases to S3-compatible services, built 
 - **Automated Backups:** Schedule backups using cron expressions.
 - **Retention Policy:** Automatically delete old backups after a specified number of days.
 - **S3-Compatible:** Works with AWS S3, Cloudflare R2, MinIO and other [S3-compatible services](https://bun.com/docs/runtime/s3#support-for-s3-compatible-services).
-- **Automatic Multipart Uploads:** Bun automatically selects regular or multipart uploads based on the backup size.
+- **Multipart Uploads:** Files larger than 5 MiB are streamed through Bun's multipart writer; smaller files use a regular upload.
 - **Compression:** Compresses PostgreSQL tar archives with Gzip for efficient storage.
 - **Flexible:** Supports custom `pg_dump` options.
 - **Run on Startup:** Option to run a backup immediately on startup.
