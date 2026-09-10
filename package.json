@@ -1,7 +1,7 @@
 {
   "name": "postgres-s3-backups",
   "type": "module",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.2",
   "description": "A simple utility to backup Postgres databases to S3 using Bun.",
   "author": {
     "name": "Nicolas Contiero",
@@ -24,9 +24,9 @@
   },
   "devDependencies": {
     "@ncontiero/eslint-config": "8.4.5",
-    "@types/bun": "1.4.0",
+    "@types/bun": "1.4.1",
     "@typescript/native": "npm:typescript@7.0.2",
-    "eslint": "10.9.1",
+    "eslint": "10.10.0",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }
