@@ -20,11 +20,11 @@
   },
   "dependencies": {
     "@t3-oss/env-core": "0.13.11",
-    "zod": "4.5.4"
+    "zod": "4.6.1"
   },
   "devDependencies": {
     "@ncontiero/eslint-config": "8.4.5",
-    "@types/bun": "1.4.1",
+    "@types/bun": "1.4.2",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.10.0",
     "typescript": "npm:@typescript/typescript6@6.0.2"
